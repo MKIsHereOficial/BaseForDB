@@ -71,7 +71,7 @@ app.post('/database/:database/:key/set', async (req, res) => {
   var value = {};
 
   console.dir(req.body);
-  if (req.body && req.body['id']) value = req.body;
+  if (req.body) value = req.body;
 
   obj = await db.set(key, value);
 
@@ -111,6 +111,33 @@ app.get('/database/:database/:key/dl', async (req, res) => {
 
   console.log(`[database/${database.toLowerCase()}/${key}]`, `O Documento foi deletado.`);
   console.dir(obj);
+
+  res.json(obj);
+});
+
+app.get('/database/:database/:key/add', async (req, res) => {
+  defaultHeaders(res);
+  const { database, key } = req.params;
+
+  if (!database) return res.json({err: 'Nenhum valor DatabaseName (?database) foi entregue.'});
+  if (!key) return res.json({err: 'Nenhuma chave (?key) foi entregue. Não há documento sem chave.'});
+  if (isNaN(req.query['value'])) return res.json({err: 'O valor entregue (value) não é um número ou é indefinido.'});
+
+  const db = await Database(database.toLowerCase());
+
+  var value = req.query['value'];
+
+  var obj = await db.get(key); 
+
+  if (!obj) return res.json(false);
+  if (isNaN(obj.value)) return res.json(false);
+
+  value = obj.value;
+
+  obj = await db.set(key, value);
+  value = obj.value + value;
+
+  console.log(`[database/${database.toLowerCase()}/${key}]`, `O Documento foi setado com o valor ${JSON.stringify(value)}.`);
 
   res.json(obj);
 });
